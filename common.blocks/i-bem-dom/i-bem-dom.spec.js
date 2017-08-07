@@ -1420,16 +1420,45 @@ describe('i-bem-dom', function() {
                 content : { block : 'block1', js : true }
             });
 
-            bemDom.update(rootNode, BEMHTML.apply({ block : 'block2', js : true }));
+            var newCtx = bemDom.update(rootNode, BEMHTML.apply({ block : 'block2', js : true }));
 
             spyBlock1Destructed.called.should.be.true;
             spyBlock2Inited.called.should.be.true;
+            newCtx.should.be.equal(rootNode);
         });
 
         it('should allow to pass simple string', function() {
             var domElem = $('<div/>');
             bemDom.update(domElem, 'simple string');
             domElem.html().should.be.equal('simple string');
+        });
+    });
+
+    describe('bemDom.before', function() {
+        it('should properly update tree', function() {
+            var spyBlock2Inited = sinon.spy(),
+                block2DomElem;
+
+            bemDom.declBlock('block2', {
+                onSetMod : {
+                    js : {
+                        inited : function() {
+                            spyBlock2Inited();
+                            block2DomElem = this.domElem;
+                        }
+                    }
+                }
+            });
+
+            rootNode = createDomNode({
+                tag : 'div',
+                content : { block : 'block1', js : true }
+            });
+
+            var newCtx = bemDom.before(rootNode.find('.block1'), BEMHTML.apply({ block : 'block2', js : true }));
+
+            newCtx.is(block2DomElem).should.be.true;
+            rootNode.children().eq(0).is(block2DomElem).should.be.true;
         });
     });
 
